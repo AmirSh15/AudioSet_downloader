@@ -8,6 +8,8 @@ A repository to download AudioSet database
 
 <br>
 
+Download AudioSet database in parallel.
+
 ## Dependency installation
 
 The code was successfully built and run with these versions:
