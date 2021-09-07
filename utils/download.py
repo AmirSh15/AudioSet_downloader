@@ -4,9 +4,6 @@ import pafy, ffmpy, os, ffmpeg, shutil
 import numpy as np
 from tqdm import tqdm
 import soundfile as sf
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import ThreadPoolExecutor
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from joblib import delayed, Parallel # install psutil library to manage memory leak
 
