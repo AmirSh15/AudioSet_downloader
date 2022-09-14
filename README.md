@@ -18,11 +18,11 @@ Download AudioSet database in parallel.
 The code was successfully built and run with these versions:
 
 ```
-soundfile 0.10.3
-tqdm	4.61.2
-moviepy	1.0.3
-joblib	1.0.1
-pytube 11.0.2
+soundfile   0.10.3
+tqdm	    4.61.2
+moviepy	    1.0.3
+joblib	    1.0.1
+pytube      12.1.0
 
 ```
 Note: You can also create the environment I've tested with by importing _environment.yml_ to conda.
