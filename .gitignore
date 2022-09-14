@@ -1,5 +1,12 @@
-/AudioSet/Animal/audio_0_start_0_end_10.wav
-/AudioSet
-/.idea
-/faulty_files.txt
-/Data_list/.~lock.labels.csv#
+# directories
+tmp/
+AudioSet/
+.idea
+utils/__pycache__/
+
+# files
+*.wav
+*.mp4
+*.webm
+faulty_files.txt
+/Data_list/.~lock.labels.csv

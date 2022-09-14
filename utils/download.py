@@ -19,6 +19,7 @@ def download_a_video_audio(
     end_time=None,
     mode="video",
     timeout=1,
+    verbose=False,
 ):
 
     download_status = False
@@ -35,10 +36,13 @@ def download_a_video_audio(
         # bestaudio = video.getbestaudio()
 
         youtube = YouTube(url)
-        video = youtube.streams.filter(only_video=True).asc().first()
-        video_ext = video.mime_type.split("/")[-1]
         audio = youtube.streams.filter(only_audio=True).asc().first()
         audio_ext = audio.mime_type.split("/")[-1]
+        if mode == "video":
+            video = youtube.streams.filter(progressive=True, file_extension="mp4").asc().first()
+        elif mode == "only_video":
+            video = youtube.streams.filter(only_video=True).asc().first()
+        video_ext = video.mime_type.split("/")[-1]
 
         if start_time != None:
             audio_path = (
@@ -52,25 +56,33 @@ def download_a_video_audio(
         else:
             audio_path = tmp_dir + f"/audio_{audio_id}.{audio_ext}"
             video_path = tmp_dir + f"/video_{audio_id}.{video_ext}"
-        print(f"start to download {url}")
-        if mode == "video":
+
+        if verbose:
+            print(f"start to download {url}")
+
+        if mode == "both_separate":
             # bestaudio.download(filepath=str(audio_path))
             # bestvideo.download(filepath=str(video_path))
             video = video.download(tmp_dir)
             os.rename(video, video_path)
             audio = audio.download(tmp_dir)
             os.rename(audio, audio_path)
-        elif mode == "audio":
+        elif mode == "only_audio":
             audio = audio.download(tmp_dir)
             os.rename(audio, audio_path)
-        print(f"end to download {url}")
+        elif mode == "video" or mode == "only_video":
+            video = video.download(tmp_dir)
+            os.rename(video, video_path)
+
+        if verbose:
+            print(f"end to download {url}")
 
         # change audio format
         a_extension = audio_ext
         xindex = audio_path.find(a_extension)
         audioname = audio_path[0:xindex]
 
-        if a_extension not in ["wav"]:
+        if a_extension not in ["wav"] and (mode != "video" and mode != "only_video"):
             conv2wav = ffmpy.FFmpeg(
                 inputs={audioname + a_extension: None},
                 outputs={audioname + "wav": None},
@@ -81,18 +93,19 @@ def download_a_video_audio(
                 os.remove(audioname + a_extension)
 
         if start_time != None:
-            file = audioname + "wav"
-            aud_data, sample_rate = sf.read(file)
+            if mode == "only_audio" or mode == "both_separate":
+                file = audioname + "wav"
+                aud_data, sample_rate = sf.read(file)
 
-            total_time = len(aud_data) / sample_rate
-            if end_time > total_time:
-                start_point = np.max([int(sample_rate * (start_time - 1)), 0])
-                end_point = int(sample_rate * (end_time - 1))
-            else:
-                start_point = int(sample_rate * start_time)
-                end_point = int(sample_rate * end_time)
+                total_time = len(aud_data) / sample_rate
+                if end_time > total_time:
+                    start_point = np.max([int(sample_rate * (start_time - 1)), 0])
+                    end_point = int(sample_rate * (end_time - 1))
+                else:
+                    start_point = int(sample_rate * start_time)
+                    end_point = int(sample_rate * end_time)
 
-            if mode == "video":
+            if mode == "both_separate" or mode == "video" or mode == "only_video":
                 # change video format
                 v_extension = video_ext
                 xindex = video_path.find(v_extension)
@@ -105,6 +118,7 @@ def download_a_video_audio(
                         new.write_videofile(video_path_tmp, audio_codec="aac", logger=None)
                     while os.path.isfile(videoname + v_extension):
                         os.remove(videoname + v_extension)
+
         # save files into their directories
         for label in labels:
             audio_path = (
@@ -115,19 +129,25 @@ def download_a_video_audio(
                 data_dir
                 + f"/{label}/video_{audio_id}_start_{int(start_time)}_end_{int(end_time)}.mp4"
             )
-            sf.write(audio_path, aud_data[start_point:end_point], sample_rate)
-            shutil.copy(video_path_tmp, video_path)
+
+            if mode == "only_audio" or mode == "both_separate":
+                sf.write(audio_path, aud_data[start_point:end_point], sample_rate)
+            if mode == "both_separate" or mode == "video" or mode == "only_video":
+                shutil.copy(video_path_tmp, video_path)
 
         # make sure that the temp files are removed
-        while os.path.isfile(audioname + "wav") and os.path.isfile(videoname + "_.mp4"):
+        while os.path.isfile(audioname + "wav"):
             os.remove(audioname + "wav")
+        while os.path.isfile(videoname + "_.mp4"):
             os.remove(videoname + "_.mp4")
 
         download_status = True
 
     except Exception as e:
-        print(e)
+        if verbose:
+            print(f"Error: {e}")
         faulty_files.append(f"{audio_id + 4} {start_time} {end_time} {labels} {url}")
+        faulty_files.append(e)
         download_status = False
 
     return download_status
@@ -166,8 +186,9 @@ def parallel_download(data, args):
             data.start[id],
             data.end[id],
             args.mode,
+            args.verbose,
         )
-        for id in tqdm(range(len(data.index)), total=len(data.index))
+        for id in tqdm(range(len(data.index)), total=len(data.index), desc="Downloading")
     )
 
     faulty_files = [

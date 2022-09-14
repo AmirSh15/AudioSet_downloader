@@ -11,7 +11,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["audio", "video"],
+        choices=["only_audio", "only_video", "both_separate", "video"],
         help="select the type of the data you are interested in.",
     )
     parser.add_argument(
@@ -50,15 +50,21 @@ if __name__ == "__main__":
         type=str,
         help="Path to CSV file containing AudioSet in YouTube-id/timestamp form",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print out more information about the download process",
+    )
 
     parser.set_defaults(
         mode="video",
         classes=None,
         blacklist=None,
-        destination_dir="./AudioSet",
+        destination_dir="/media/amir_shirian/Amir/Datasets/Sound_Recognition/AudioSet/new_Eval_full_audioset",#"./AudioSet",
         fs=16000,
         label_file="./Data_list/labels.csv",
         csv_dataset="./Data_list/eval_segments.csv",
+        verbose=False,
     )
 
     args = parser.parse_args()
