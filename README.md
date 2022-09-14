@@ -6,6 +6,9 @@ A repository to download AudioSet database
 **Sep 07, 2021**
 * First release of the project.
 
+**Sep 14, 2022**
+* Added the ability to control the type of downloading files.
+
 <br>
 
 Download AudioSet database in parallel.
@@ -39,6 +42,8 @@ optional arguments:
   -d, --destination_dir     directory path to put downloaded files into
   --label_file              Path to CSV file containing AudioSet labels for each class
   --csv_dataset             Path to CSV file containing AudioSet in YouTube-id/timestamp form
+  --verbose                 Print download information for each file
+  --mode                    Select the type of the data you are interested in. Options: "only_audio", "only_video", "both_separate", "video"
 ```
 
 <br>
